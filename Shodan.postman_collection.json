@@ -1,0 +1,3352 @@
+{
+	"info": {
+		"_postman_id": "0b342991-f527-49e0-b249-daf3a4adbb13",
+		"name": "Shodan",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Shodan Search Methods",
+			"item": [
+				{
+					"name": "Host Information",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"function getRandomIp() {\r",
+									"    return (Math.floor(Math.random() * 255) + 1)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0);\r",
+									"}\r",
+									"var ip = pm.environment.get(\"ip\");\r",
+									"if (typeof ip == \"undefined\") {\r",
+									"    pm.environment.set(\"ip\", getRandomIp());\r",
+									"}\r",
+									"console.log(\"random ip is set to \"+pm.environment.get(\"ip\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									"var template = `",
+									"    <style type=\"text/css\" id=\"css\">",
+									"        #responseTable {font-size:14px;color:#333333;border-width: 1px;border-color: #87CEEB;border-collapse: collapse;font-family:Raleway,HelveticaNeue,\"Helvetica Neue\",Helvetica,Arial,sans-serif;}",
+									"        #responseTable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87CEEB;text-align:left;}",
+									"        #responseTable .type th {background-color:#327996;color:#E1E1E1;}",
+									"        #responseTable tr {background-color:#FFFFFF;}",
+									"        #responseTable td {font-size:14px;border-width: 1px;padding: 8px 20px 8px 8px;border-style: solid;border-color: #87CEEB;}",
+									"        #responseTable tr:hover {background-color:#F5F5F5;}",
+									"        #createBtn, #saveBtn {padding: 5px 10px;background-color:#F5F5F5;border:1px solid #D1D1D1;border-radius:4px;color:#999;text-decoration:none;display:inline;line-height:24px}",
+									"        #createBtn:hover, #saveBtn:hover {background-color:#E5E5E5;}",
+									"    </style>",
+									"",
+									"    <table id=\"responseTable\">",
+									"        <tr><th>IP</th><th>Ports</th><th>ISP</th><th>Organisation</th><th>Country</th><th>City</th></tr>",
+									"        <tr>",
+									"            <td>{{response.ip}}</td>",
+									"            <td>{{response.ports}}</td>",
+									"            <td>{{response.isp}}</td>",
+									"            <td>{{response.org}}</td>",
+									"            <td>{{response.country_code}} ({{response.country}})</td>",
+									"            <td>{{response.city}}</td>",
+									"        </tr>",
+									"        <tr class=\"type\"><th colspan=\"6\">Certificate</th></tr>",
+									"        <tr>",
+									"            <td>443</td>",
+									"            <td colspan=\"5\">{{response.cert.issuer}}</td>",
+									"        </tr>",
+									"        <tr>",
+									"            <td>Expires</td>",
+									"            <td colspan=\"5\">{{response.cert.expires}}</td>",
+									"        </tr>",
+									"        <tr>",
+									"            <td>Is Expired</td>",
+									"            <td colspan=\"5\">{{response.cert.expired}}</td>",
+									"        </tr>",
+									"    </table>",
+									"    <p id=\"createMessage\">",
+									"        If you want to save this data to you hard disk, you can <input type=\"button\" id=\"createBtn\" value=\"Create A File\"> with the data of this table.",
+									"    </p>",
+									"    <p id=\"saveMessage\" style=\"display: none;\">",
+									"        File created; you can now <a href=\"\" download=\"postman_response.html\" id=\"saveBtn\">Save the Data</a>",
+									"    </p>",
+									"    <script type=\"text/javascript\">",
+									"        var textFile = null,",
+									"        makeTextFile = function (text) {",
+									"            var data = new Blob([text], {type: 'data:attachment/text'});",
+									"            if (textFile !== null) {",
+									"              window.URL.revokeObjectURL(textFile);",
+									"            }",
+									"    ",
+									"            textFile = window.URL.createObjectURL(data);",
+									"            return textFile;",
+									"          };",
+									"        var createBtn = document.getElementById('createBtn'),",
+									"          css = document.getElementById('css'),",
+									"          table = document.getElementById('responseTable');",
+									"        createBtn.addEventListener('click', function () {",
+									"            var saveBtn = document.getElementById('saveBtn');",
+									"            document.getElementById('createMessage').style.display = 'none';",
+									"            document.getElementById('saveMessage').style.display = 'block';",
+									"            saveBtn.download = 'postman_data.html';",
+									"            saveBtn.href = makeTextFile(\"<html><head><title>Shodan Data saved at \"+new Date()+\"</title>\"+css.outerHTML+\"</head><body>\"+table.outerHTML+\"</body></html>\");",
+									"          }, false);",
+									"    </script>",
+									"`;",
+									"jsonData = pm.response.json();",
+									"tplObj = {",
+									"    ip: jsonData.ip_str,",
+									"    isp: jsonData.isp,",
+									"    country: jsonData.country_name,",
+									"    country_code: jsonData.country_code,",
+									"    city: jsonData.city,",
+									"    org: jsonData.org,",
+									"    ports: jsonData.ports,",
+									"    cert: {",
+									"        issuer: 'port 443 not available',",
+									"        expires: '',",
+									"        expired: ''",
+									"    }",
+									"}",
+									"if (typeof jsonData.error != \"undefined\") {",
+									"    tplObj.ip = jsonData.error;",
+									"}",
+									"for (var o in jsonData.data) {",
+									"    obj = jsonData.data[o];",
+									"    if (obj.port == \"443\") {",
+									"        tplObj.cert.issuer = obj.ssl.cert.issuer.C+ \" / \"+obj.ssl.cert.issuer.OU+ \" / \"+obj.ssl.cert.issuer.O+ \" / \"+obj.ssl.cert.issuer.N;",
+									"        tplObj.cert.expires = obj.ssl.cert.expires.substring(0,4)+\"-\"+obj.ssl.cert.expires.substring(4,6)+\"-\"+obj.ssl.cert.expires.substring(6,8);",
+									"        tplObj.cert.expired = obj.ssl.cert.expired;",
+									"    }",
+									"}",
+									"pm.visualizer.set(template, {",
+									"    response: tplObj",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/{{ip}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"host",
+								"{{ip}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "history",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "minify",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Returns all services that have been found on the given host IP.\n\n**Parameters**\n* **ip**: [String] Host IP address\n* **history** (optional): [Boolean] True if all historical banners should be returned (default: False)\n* **minify** (optional): [Boolean] True to only return the list of ports and the general host information, no banners. (default: False)"
+					},
+					"response": []
+				},
+				{
+					"name": "Host Information Including history",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"function getRandomIp() {\r",
+									"    return (Math.floor(Math.random() * 255) + 1)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0);\r",
+									"}\r",
+									"var ip = pm.environment.get(\"ip\");\r",
+									"if (typeof ip == \"undefined\") {\r",
+									"    pm.environment.set(\"ip\", getRandomIp());\r",
+									"}\r",
+									"console.log(\"random ip is set to \"+pm.environment.get(\"ip\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									"var template = `",
+									"    <style type=\"text/css\" id=\"css\">",
+									"        #responseTable {font-size:14px;color:#333333;border-width: 1px;border-color: #87CEEB;border-collapse: collapse;font-family:Raleway,HelveticaNeue,\"Helvetica Neue\",Helvetica,Arial,sans-serif;}",
+									"        #responseTable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87CEEB;text-align:left;}",
+									"        #responseTable .type th {background-color:#327996;color:#E1E1E1;}",
+									"        #responseTable tr {background-color:#FFFFFF;}",
+									"        #responseTable td {font-size:14px;border-width: 1px;padding: 8px 20px 8px 8px;border-style: solid;border-color: #87CEEB;}",
+									"        #responseTable tr:hover {background-color:#F5F5F5;}",
+									"        #createBtn, #saveBtn {padding: 5px 10px;background-color:#F5F5F5;border:1px solid #D1D1D1;border-radius:4px;color:#999;text-decoration:none;display:inline;line-height:24px}",
+									"        #createBtn:hover, #saveBtn:hover {background-color:#E5E5E5;}",
+									"    </style>",
+									"",
+									"    <table id=\"responseTable\">",
+									"        <tr><th>IP</th><th>Ports</th><th>ISP</th><th>Organisation</th><th>Country</th><th>City</th></tr>",
+									"        <tr>",
+									"            <td>{{response.ip}}</td>",
+									"            <td>{{response.ports}}</td>",
+									"            <td>{{response.isp}}</td>",
+									"            <td>{{response.org}}</td>",
+									"            <td>{{response.country_code}} ({{response.country}})</td>",
+									"            <td>{{response.city}}</td>",
+									"        </tr>",
+									"        <tr class=\"type\"><th colspan=\"6\">Certificate</th></tr>",
+									"        <tr>",
+									"            <td>443</td>",
+									"            <td colspan=\"5\">{{response.cert.issuer}}</td>",
+									"        </tr>",
+									"        <tr>",
+									"            <td>Expires</td>",
+									"            <td colspan=\"5\">{{response.cert.expires}}</td>",
+									"        </tr>",
+									"        <tr>",
+									"            <td>Is Expired</td>",
+									"            <td colspan=\"5\">{{response.cert.expired}}</td>",
+									"        </tr>",
+									"    </table>",
+									"    <p id=\"createMessage\">",
+									"        If you want to save this data to you hard disk, you can <input type=\"button\" id=\"createBtn\" value=\"Create A File\"> with the data of this table.",
+									"    </p>",
+									"    <p id=\"saveMessage\" style=\"display: none;\">",
+									"        File created; you can now <a href=\"\" download=\"postman_response.html\" id=\"saveBtn\">Save the Data</a>",
+									"    </p>",
+									"    <script type=\"text/javascript\">",
+									"        var textFile = null,",
+									"        makeTextFile = function (text) {",
+									"            var data = new Blob([text], {type: 'data:attachment/text'});",
+									"            if (textFile !== null) {",
+									"              window.URL.revokeObjectURL(textFile);",
+									"            }",
+									"    ",
+									"            textFile = window.URL.createObjectURL(data);",
+									"            return textFile;",
+									"          };",
+									"        var createBtn = document.getElementById('createBtn'),",
+									"          css = document.getElementById('css'),",
+									"          table = document.getElementById('responseTable');",
+									"        createBtn.addEventListener('click', function () {",
+									"            var saveBtn = document.getElementById('saveBtn');",
+									"            document.getElementById('createMessage').style.display = 'none';",
+									"            document.getElementById('saveMessage').style.display = 'block';",
+									"            saveBtn.download = 'postman_data.html';",
+									"            saveBtn.href = makeTextFile(\"<html><head><title>Shodan Data saved at \"+new Date()+\"</title>\"+css.outerHTML+\"</head><body>\"+table.outerHTML+\"</body></html>\");",
+									"          }, false);",
+									"    </script>",
+									"`;",
+									"jsonData = pm.response.json();",
+									"tplObj = {",
+									"    ip: jsonData.ip_str,",
+									"    isp: jsonData.isp,",
+									"    country: jsonData.country_name,",
+									"    country_code: jsonData.country_code,",
+									"    city: jsonData.city,",
+									"    org: jsonData.org,",
+									"    ports: jsonData.ports,",
+									"    cert: {",
+									"        issuer: 'port 443 not available',",
+									"        expires: '',",
+									"        expired: ''",
+									"    }",
+									"}",
+									"if (typeof jsonData.error != \"undefined\") {",
+									"    tplObj.ip = jsonData.error;",
+									"}",
+									"for (var o in jsonData.data) {",
+									"    obj = jsonData.data[o];",
+									"    if (obj.port == \"443\") {",
+									"        tplObj.cert.issuer = obj.ssl.cert.issuer.C+ \" / \"+obj.ssl.cert.issuer.OU+ \" / \"+obj.ssl.cert.issuer.O+ \" / \"+obj.ssl.cert.issuer.N;",
+									"        tplObj.cert.expires = obj.ssl.cert.expires.substring(0,4)+\"-\"+obj.ssl.cert.expires.substring(4,6)+\"-\"+obj.ssl.cert.expires.substring(6,8);",
+									"        tplObj.cert.expired = obj.ssl.cert.expired;",
+									"    }",
+									"}",
+									"pm.visualizer.set(template, {",
+									"    response: tplObj",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/{{ip}}?key={{API_KEY}}&history=true",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"host",
+								"{{ip}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "history",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Same as 'Host Information', with all the historical banners included"
+					},
+					"response": []
+				},
+				{
+					"name": "Host Information Minified",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"function getRandomIp() {\r",
+									"    return (Math.floor(Math.random() * 255) + 1)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0);\r",
+									"}\r",
+									"var ip = pm.environment.get(\"ip\");\r",
+									"if (typeof ip == \"undefined\") {\r",
+									"    pm.environment.set(\"ip\", getRandomIp());\r",
+									"}\r",
+									"console.log(\"random ip is set to \"+pm.environment.get(\"ip\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									"var template = `",
+									"    <style type=\"text/css\" id=\"css\">",
+									"        #responseTable {font-size:14px;color:#333333;border-width: 1px;border-color: #87CEEB;border-collapse: collapse;font-family:Raleway,HelveticaNeue,\"Helvetica Neue\",Helvetica,Arial,sans-serif;}",
+									"        #responseTable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87CEEB;text-align:left;}",
+									"        #responseTable .type th {background-color:#327996;color:#E1E1E1;}",
+									"        #responseTable tr {background-color:#FFFFFF;}",
+									"        #responseTable td {font-size:14px;border-width: 1px;padding: 8px 20px 8px 8px;border-style: solid;border-color: #87CEEB;}",
+									"        #responseTable tr:hover {background-color:#F5F5F5;}",
+									"        #createBtn, #saveBtn {padding: 5px 10px;background-color:#F5F5F5;border:1px solid #D1D1D1;border-radius:4px;color:#999;text-decoration:none;display:inline;line-height:24px}",
+									"        #createBtn:hover, #saveBtn:hover {background-color:#E5E5E5;}",
+									"    </style>",
+									"",
+									"    <table id=\"responseTable\">",
+									"        <tr><th>IP</th><th>Ports</th><th>ISP</th><th>Organisation</th><th>Country</th><th>City</th></tr>",
+									"        <tr>",
+									"            <td>{{response.ip}}</td>",
+									"            <td>{{response.ports}}</td>",
+									"            <td>{{response.isp}}</td>",
+									"            <td>{{response.org}}</td>",
+									"            <td>{{response.country_code}} ({{response.country}})</td>",
+									"            <td>{{response.city}}</td>",
+									"        </tr>",
+									"        <tr class=\"type\"><th colspan=\"6\">Certificate</th></tr>",
+									"        <tr>",
+									"            <td>443</td>",
+									"            <td colspan=\"5\">{{response.cert.issuer}}</td>",
+									"        </tr>",
+									"        <tr>",
+									"            <td>Expires</td>",
+									"            <td colspan=\"5\">{{response.cert.expires}}</td>",
+									"        </tr>",
+									"        <tr>",
+									"            <td>Is Expired</td>",
+									"            <td colspan=\"5\">{{response.cert.expired}}</td>",
+									"        </tr>",
+									"    </table>",
+									"    <p id=\"createMessage\">",
+									"        If you want to save this data to you hard disk, you can <input type=\"button\" id=\"createBtn\" value=\"Create A File\"> with the data of this table.",
+									"    </p>",
+									"    <p id=\"saveMessage\" style=\"display: none;\">",
+									"        File created; you can now <a href=\"\" download=\"postman_response.html\" id=\"saveBtn\">Save the Data</a>",
+									"    </p>",
+									"    <script type=\"text/javascript\">",
+									"        var textFile = null,",
+									"        makeTextFile = function (text) {",
+									"            var data = new Blob([text], {type: 'data:attachment/text'});",
+									"            if (textFile !== null) {",
+									"              window.URL.revokeObjectURL(textFile);",
+									"            }",
+									"    ",
+									"            textFile = window.URL.createObjectURL(data);",
+									"            return textFile;",
+									"          };",
+									"        var createBtn = document.getElementById('createBtn'),",
+									"          css = document.getElementById('css'),",
+									"          table = document.getElementById('responseTable');",
+									"        createBtn.addEventListener('click', function () {",
+									"            var saveBtn = document.getElementById('saveBtn');",
+									"            document.getElementById('createMessage').style.display = 'none';",
+									"            document.getElementById('saveMessage').style.display = 'block';",
+									"            saveBtn.download = 'postman_data.html';",
+									"            saveBtn.href = makeTextFile(\"<html><head><title>Shodan Data saved at \"+new Date()+\"</title>\"+css.outerHTML+\"</head><body>\"+table.outerHTML+\"</body></html>\");",
+									"          }, false);",
+									"    </script>",
+									"`;",
+									"jsonData = pm.response.json();",
+									"tplObj = {",
+									"    ip: jsonData.ip_str,",
+									"    isp: jsonData.isp,",
+									"    country: jsonData.country_name,",
+									"    country_code: jsonData.country_code,",
+									"    city: jsonData.city,",
+									"    org: jsonData.org,",
+									"    ports: jsonData.ports,",
+									"    cert: {",
+									"        issuer: 'port 443 not available',",
+									"        expires: '',",
+									"        expired: ''",
+									"    }",
+									"}",
+									"if (typeof jsonData.error != \"undefined\") {",
+									"    tplObj.ip = jsonData.error;",
+									"}",
+									"for (var o in jsonData.data) {",
+									"    obj = jsonData.data[o];",
+									"    if (obj.port == \"443\") {",
+									"        tplObj.cert.issuer = obj.ssl.cert.issuer.C+ \" / \"+obj.ssl.cert.issuer.OU+ \" / \"+obj.ssl.cert.issuer.O+ \" / \"+obj.ssl.cert.issuer.N;",
+									"        tplObj.cert.expires = obj.ssl.cert.expires.substring(0,4)+\"-\"+obj.ssl.cert.expires.substring(4,6)+\"-\"+obj.ssl.cert.expires.substring(6,8);",
+									"        tplObj.cert.expired = obj.ssl.cert.expired;",
+									"    }",
+									"}",
+									"pm.visualizer.set(template, {",
+									"    response: tplObj",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/{{ip}}?key={{API_KEY}}&minify=true",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"host",
+								"{{ip}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "minify",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Same as 'Host Information', with a minified response"
+					},
+					"response": []
+				},
+				{
+					"name": "Search  without Results",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/count?key={{API_KEY}}&query=country:\"NL\" after:\"01/01/2019\"&facets=city,device",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"host",
+								"count"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "query",
+									"value": "country:\"NL\" after:\"01/01/2019\"",
+									"description": "This is an example vaue. Replace it with your own query"
+								},
+								{
+									"key": "facets",
+									"value": "city,device",
+									"description": "This is an example vaue. Replace it with your own filters"
+								}
+							]
+						},
+						"description": "This method behaves identical to \"/shodan/host/search\" with the only difference that this method does not return any host results, it only returns the total number of results that matched the query and any facet information that was requested. As a result this method does not consume query credits.\r\n\r\n**Parameters**\r\n* **query**: [String] Shodan search query. The provided string is used to search the database of banners in Shodan, with the additional option to provide filters inside the search query using a \"filter:value\" format. For example, the following search query would find Apache webservers located in Germany: \"apache country:DE\". The following filters are currently supported:\r\n\t* **after**: Only show results that were collected after the given date (dd/mm/yyyy).\r\n\t* **asn** : The Autonomous System Number that identifies the network the device is on.\r\n\t* **before** : Only show results that were collected before the given date (dd/mm/yyyy.\r\n\t* **city** : Show results that are located in the given city.\r\n\t* **country** : Show results that are located within the given country.\r\n\t* **geo** : There are 2 modes to the geo filter: radius and bounding box. To limit results based on a radius around a pair of latitude/ longitude, provide 3 parameters; ex: geo:50,50,100. If you want to find all results within a bounding box, supply the top left and bottom right coordinates for the region; ex: geo:10,10,50,50.\r\n\t* **hash** : Hash of the \"data\" property\r\n\t* **has_ipv6** : If \"true\" only show results that were discovered on IPv6.\r\n\t* **has_screenshot** : If \"true\" only show results that have a screenshot available.\r\n\t* **hostname** : Search for hosts that contain the given value in their hostname.\r\n\t* **isp** : Find devices based on the upstream owner of the IP netblock.\r\n\t* **link** : Find devices depending on their connection to the Internet.\r\n\t* **net** : Search by netblock using CIDR notation; ex: net:69.84.207.0/24\r\n\t* **org** : Find devices based on the owner of the IP netblock.\r\n\t* **os** : Filter results based on the operating system of the device.\r\n\t* **port** : Find devices based on the services/ ports that are publicly exposed on the Internet.\r\n\t* **postal** : Search by postal code.\r\n\t* **product** : Filter using the name of the software/ product; ex: product:Apache\r\n\t* **state** : Search for devices based on the state/ region they are located in.\r\n\t* **version** : Filter the results to include only products of the given version; ex: product:apache version:1.3.37\r\n\r\n\t* **bitcoin.ip** : Find Bitcoin servers that had the given IP in their list of peers.\r\n\t* **bitcoin.ip_count** : Find Bitcoin servers that return the given number of IPs in the list of peers.\r\n\t* **bitcoin.port** : Find Bitcoin servers that had IPs with the given port in their list of peers.\r\n\t* **bitcoin.version** : Filter results based on the Bitcoin protocol version.\r\n\r\n\t* **http.component** : Name of web technology used on the website\r\n\t* **http.component_category** : Category of web components used on the website\r\n\t* **http.html** : Search the HTML of the website for the given value.\r\n\t* **http.html_hash** : Hash of the website HTML\r\n\t* **http.status** : Response status code\r\n\t* **http.title** : Search the title of the website\r\n\r\n\t* **ntp.ip** : Find NTP servers that had the given IP in their monlist.\r\n\t* **ntp.ip_count** : Find NTP servers that return the given number of IPs in the initial monlist response.\r\n\t* **ntp.more** : Whether or not more IPs were available for the given NTP server.\r\n\t* **ntp.port** : Find NTP servers that had IPs with the given port in their monlist.\r\n\r\n\t* **ssl** : Search all SSL data\r\n\t* **ssl.alpn** : Application layer protocols such as HTTP/2 (\"h2\")\r\n\t* **ssl.chain_count** : Number of certificates in the chain\r\n\t* **ssl.version** : Possible values: SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2\r\n\t* **ssl.cert.alg** : Certificate algorithm\r\n\t* **ssl.cert.expired** : Whether the SSL certificate is expired or not; True/ False\r\n\t* **ssl.cert.extension** : Names of extensions in the certificate\r\n\t* **ssl.cert.serial** : Serial number as an integer or hexadecimal string\r\n\t* **ssl.cert.pubkey.bits** : Number of bits in the public key\r\n\t* **ssl.cert.pubkey.type** : Public key type\r\n\t* **ssl.cipher.version** : SSL version of the preferred cipher\r\n\t* **ssl.cipher.bits** : Number of bits in the preferred cipher\r\n\t* **ssl.cipher.name** : Name of the preferred cipher\r\n\r\n\t* **telnet.option** : Search all the options\r\n\t* **telnet.do** : The server requests the client to support these options\r\n\t* **telnet.dont** : The server requests the client to not support these options\r\n\t* **telnet.will** : The server supports these options\r\n\t* **telnet.wont** : The server doesnt support these options\r\n\r\n* **facets** (optional): [String] A comma-separated list of properties to get summary information on. Property names can also be in the format of \"property:count\", where \"count\" is the number of facets that will be returned for a property (i.e. \"country:100\" to get the top 100 countries for a search query). The following facets are currently supported:\r\n\t* **asn** : Autonomous system number.\r\n\t* **city** : Name of the city where the device is located.\r\n\t* **country** : 2-letter country code where the device is located.\r\n\t* **device** : The type of device (webcam, router, etc.).\r\n\t* **domain** : The primary domain for the hostname of the device; i.e. the hostname without any subdomains.\r\n\t* **geocluster** : Group devices based on their latitude/ longitude into geographic regions/ clusters.\r\n\t* **has_screenshot** : If \"true\" only includes results that have a screenshot available.\r\n\t* **isp** : The ISP that is providing the organization with the IP space for this device.\r\n\t* **link** : The network link type. Possible values are: \"Ethernet or modem\", \"generic tunnel or VPN\", \"DSL\", \"IPIP or SIT\", \"SLIP\", \"IPSec or GRE\", \"VLAN\", \"jumbo Ethernet\", \"Google\", \"GIF\", \"PPTP\", \"loopback\", \"AX.25 radio modem\".\r\n\t* **org** : The name of the organization that is assigned the IP space for this device.\r\n\t* **os** : The operating system that powers the device.\r\n\t* **port** : The port number that the service is operating on.\r\n\t* **postal** : The postal code for the location the device is at.\r\n\t* **state** : The state/ region where the device is located.\r\n\t* **timestamp_day** : Provide a breakdown of when the banners were last updated, broken down by days.\r\n\t* **timestamp_month** : Provide a breakdown of when the banners were last updated, broken down by months.\r\n\t* **timestamp_year** : Provide a breakdown of when the banners were last updated, broken down by years.\r\n\t* **uptime** : Returns a histogram of values showing the number of minutes that the devices have been online.\r\n\t* **version** : The version of the product that generated the banner.\r\n\r\n\t* **bitcoin.ip** : The IPs from the list of peers.\r\n\t* **bitcoin.ip_count** : The number of peers that were returned by the Bitcoin server.\r\n\t* **bitcoin.port** : The port numbers that the peers were using to communicate with the Bitcoin server.\r\n\t* **bitcoin.user_agent** : The user-agent of the software that powers the Bitcoin server.\r\n\t* **bitcoin.version** : The Bitcoin protocol version of the server.\r\n\r\n\t* **http.component** : Name of web technology used on the website\r\n\t* **http.component_category** : Category of web components used on the website\r\n\t* **http.html_hash** : Hash of the website HTML\r\n\t* **http.status** : Response status code\r\n\t* **http.title** : Title of the website\r\n\r\n\t* **ntp.ip** : The IPs that were returned from running the NTP monlist command.\r\n\t* **ntp.ip_count** : The number of IPs that were returned by the NTP monlist command; values can range from 0 to 6.\r\n\t* **ntp.more** : Boolean value indicating whether or not there were more than 6 IPs available from the server.\r\n\t* **ntp.port** : The port numbers that the IPs in the monlist command used to interact with the NTP server.\r\n\r\n\t* **ssh.cipher** : The cipher used to encrypt the SSH connection.\r\n\t* **ssh.fingerprint** : The unique fingerprint for the device based on its key.\r\n\t* **ssh.mac** : The hashing method used to calculate the MAC.\r\n\t* **ssh.type** : The key type used for the connection.\r\n\r\n\t* **ssl.alpn** : Application layer protocols such as HTTP/2 (\"h2\")\r\n\t* **ssl.chain_count** : Number of certificates in the chain\r\n\t* **ssl.version** : Possible values: SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2\r\n\t* **ssl.cert.alg** : Certificate algorithm\r\n\t* **ssl.cert.expired** : Whether the SSL certificate is expired or not; True/ False\r\n\t* **ssl.extension** : Names of extensions in the certificate\r\n\t* **ssl.cert.fingerprint** : SSL certificate fingerprint\r\n\t* **ssl.cert.serial** : Serial number as an integer or hexadecimal string\r\n\t* **ssl.cert.pubkey.bits** : Number of bits in the public key\r\n\t* **ssl.cert.pubkey.type** : Public key type\r\n\t* **ssl.cipher.version** : SSL version of the preferred cipher\r\n\t* **ssl.cipher.bits** : Number of bits in the preferred cipher\r\n\t* **ssl.cipher.name** : Name of the preferred cipher\r\n\r\n\t* **telnet.option** : Show all the options\r\n\t* **telnet.do** : The server requests the client to support these options\r\n\t* **telnet.dont** : The server requests the client to not support these options\r\n\t* **telnet.will** : The server supports these options\r\n\t* **telnet.wont** : The server doesnt support these options"
+					},
+					"response": []
+				},
+				{
+					"name": "Host Search",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/search?key={{API_KEY}}&query=nginx country:NL city:Rotterdam port:443 ssl.alpn:h2 ssl.chain_count:4",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"host",
+								"search"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "query",
+									"value": "nginx country:NL city:Rotterdam port:443 ssl.alpn:h2 ssl.chain_count:4",
+									"description": "This is an example vaue. Replace it with your own query"
+								},
+								{
+									"key": "facets",
+									"value": "version",
+									"description": "This is an example vaue. Replace it with your own filter",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Search Shodan using the same query syntax as the website and use facets to get summary information for different properties.\n\n**Requirements**\n\nThis method may use API query credits depending on usage. If any of the following criteria are met, your account will be deducated 1 query credit:\n* The search query contains a filter.\n* Accessing results past the 1st page using the \"page\". For every 100 results past the 1st page 1 query credit is deducted.\n\n**Parameters**\n* **query**: [String] Shodan search query. The provided string is used to search the database of banners in Shodan, with the additional option to provide filters inside the search query using a \"filter:value\" format. For example, the following search query would find Apache webservers located in Germany: \"apache country:DE\". The following filters are currently supported:\n\t* **after**: Only show results that were collected after the given date (dd/mm/yyyy).\n\t* **asn** : The Autonomous System Number that identifies the network the device is on.\n\t* **before** : Only show results that were collected before the given date (dd/mm/yyyy.\n\t* **city** : Show results that are located in the given city.\n\t* **country** : Show results that are located within the given country.\n\t* **geo** : There are 2 modes to the geo filter: radius and bounding box. To limit results based on a radius around a pair of latitude/ longitude, provide 3 parameters; ex: geo:50,50,100. If you want to find all results within a bounding box, supply the top left and bottom right coordinates for the region; ex: geo:10,10,50,50.\n\t* **hash** : Hash of the \"data\" property\n\t* **has_ipv6** : If \"true\" only show results that were discovered on IPv6.\n\t* **has_screenshot** : If \"true\" only show results that have a screenshot available.\n\t* **hostname** : Search for hosts that contain the given value in their hostname.\n\t* **isp** : Find devices based on the upstream owner of the IP netblock.\n\t* **link** : Find devices depending on their connection to the Internet.\n\t* **net** : Search by netblock using CIDR notation; ex: net:69.84.207.0/24\n\t* **org** : Find devices based on the owner of the IP netblock.\n\t* **os** : Filter results based on the operating system of the device.\n\t* **port** : Find devices based on the services/ ports that are publicly exposed on the Internet.\n\t* **postal** : Search by postal code.\n\t* **product** : Filter using the name of the software/ product; ex: product:Apache\n\t* **state** : Search for devices based on the state/ region they are located in.\n\t* **version** : Filter the results to include only products of the given version; ex: product:apache version:1.3.37\n\n\t* **bitcoin.ip** : Find Bitcoin servers that had the given IP in their list of peers.\n\t* **bitcoin.ip_count** : Find Bitcoin servers that return the given number of IPs in the list of peers.\n\t* **bitcoin.port** : Find Bitcoin servers that had IPs with the given port in their list of peers.\n\t* **bitcoin.version** : Filter results based on the Bitcoin protocol version.\n\n\t* **http.component** : Name of web technology used on the website\n\t* **http.component_category** : Category of web components used on the website\n\t* **http.html** : Search the HTML of the website for the given value.\n\t* **http.html_hash** : Hash of the website HTML\n\t* **http.status** : Response status code\n\t* **http.title** : Search the title of the website\n\n\t* **ntp.ip** : Find NTP servers that had the given IP in their monlist.\n\t* **ntp.ip_count** : Find NTP servers that return the given number of IPs in the initial monlist response.\n\t* **ntp.more** : Whether or not more IPs were available for the given NTP server.\n\t* **ntp.port** : Find NTP servers that had IPs with the given port in their monlist.\n\n\t* **ssl** : Search all SSL data\n\t* **ssl.alpn** : Application layer protocols such as HTTP/2 (\"h2\")\n\t* **ssl.chain_count** : Number of certificates in the chain\n\t* **ssl.version** : Possible values: SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2\n\t* **ssl.cert.alg** : Certificate algorithm\n\t* **ssl.cert.expired** : Whether the SSL certificate is expired or not; True/ False\n\t* **ssl.cert.extension** : Names of extensions in the certificate\n\t* **ssl.cert.serial** : Serial number as an integer or hexadecimal string\n\t* **ssl.cert.pubkey.bits** : Number of bits in the public key\n\t* **ssl.cert.pubkey.type** : Public key type\n\t* **ssl.cipher.version** : SSL version of the preferred cipher\n\t* **ssl.cipher.bits** : Number of bits in the preferred cipher\n\t* **ssl.cipher.name** : Name of the preferred cipher\n\n\t* **telnet.option** : Search all the options\n\t* **telnet.do** : The server requests the client to support these options\n\t* **telnet.dont** : The server requests the client to not support these options\n\t* **telnet.will** : The server supports these options\n\t* **telnet.wont** : The server doesnt support these options\n\n* **facets** (optional): [String] A comma-separated list of properties to get summary information on. Property names can also be in the format of \"property:count\", where \"count\" is the number of facets that will be returned for a property (i.e. \"country:100\" to get the top 100 countries for a search query). The following facets are currently supported:\n\t* **asn** : Autonomous system number.\n\t* **city** : Name of the city where the device is located.\n\t* **country** : 2-letter country code where the device is located.\n\t* **device** : The type of device (webcam, router, etc.).\n\t* **domain** : The primary domain for the hostname of the device; i.e. the hostname without any subdomains.\n\t* **geocluster** : Group devices based on their latitude/ longitude into geographic regions/ clusters.\n\t* **has_screenshot** : If \"true\" only includes results that have a screenshot available.\n\t* **isp** : The ISP that is providing the organization with the IP space for this device.\n\t* **link** : The network link type. Possible values are: \"Ethernet or modem\", \"generic tunnel or VPN\", \"DSL\", \"IPIP or SIT\", \"SLIP\", \"IPSec or GRE\", \"VLAN\", \"jumbo Ethernet\", \"Google\", \"GIF\", \"PPTP\", \"loopback\", \"AX.25 radio modem\".\n\t* **org** : The name of the organization that is assigned the IP space for this device.\n\t* **os** : The operating system that powers the device.\n\t* **port** : The port number that the service is operating on.\n\t* **postal** : The postal code for the location the device is at.\n\t* **state** : The state/ region where the device is located.\n\t* **timestamp_day** : Provide a breakdown of when the banners were last updated, broken down by days.\n\t* **timestamp_month** : Provide a breakdown of when the banners were last updated, broken down by months.\n\t* **timestamp_year** : Provide a breakdown of when the banners were last updated, broken down by years.\n\t* **uptime** : Returns a histogram of values showing the number of minutes that the devices have been online.\n\t* **version** : The version of the product that generated the banner.\n\n\t* **bitcoin.ip** : The IPs from the list of peers.\n\t* **bitcoin.ip_count** : The number of peers that were returned by the Bitcoin server.\n\t* **bitcoin.port** : The port numbers that the peers were using to communicate with the Bitcoin server.\n\t* **bitcoin.user_agent** : The user-agent of the software that powers the Bitcoin server.\n\t* **bitcoin.version** : The Bitcoin protocol version of the server.\n\n\t* **http.component** : Name of web technology used on the website\n\t* **http.component_category** : Category of web components used on the website\n\t* **http.html_hash** : Hash of the website HTML\n\t* **http.status** : Response status code\n\t* **http.title** : Title of the website\n\n\t* **ntp.ip** : The IPs that were returned from running the NTP monlist command.\n\t* **ntp.ip_count** : The number of IPs that were returned by the NTP monlist command; values can range from 0 to 6.\n\t* **ntp.more** : Boolean value indicating whether or not there were more than 6 IPs available from the server.\n\t* **ntp.port** : The port numbers that the IPs in the monlist command used to interact with the NTP server.\n\n\t* **ssh.cipher** : The cipher used to encrypt the SSH connection.\n\t* **ssh.fingerprint** : The unique fingerprint for the device based on its key.\n\t* **ssh.mac** : The hashing method used to calculate the MAC.\n\t* **ssh.type** : The key type used for the connection.\n\n\t* **ssl.alpn** : Application layer protocols such as HTTP/2 (\"h2\")\n\t* **ssl.chain_count** : Number of certificates in the chain\n\t* **ssl.version** : Possible values: SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2\n\t* **ssl.cert.alg** : Certificate algorithm\n\t* **ssl.cert.expired** : Whether the SSL certificate is expired or not; True/ False\n\t* **ssl.extension** : Names of extensions in the certificate\n\t* **ssl.cert.fingerprint** : SSL certificate fingerprint\n\t* **ssl.cert.serial** : Serial number as an integer or hexadecimal string\n\t* **ssl.cert.pubkey.bits** : Number of bits in the public key\n\t* **ssl.cert.pubkey.type** : Public key type\n\t* **ssl.cipher.version** : SSL version of the preferred cipher\n\t* **ssl.cipher.bits** : Number of bits in the preferred cipher\n\t* **ssl.cipher.name** : Name of the preferred cipher\n\n\t* **telnet.option** : Show all the options\n\t* **telnet.do** : The server requests the client to support these options\n\t* **telnet.dont** : The server requests the client to not support these options\n\t* **telnet.will** : The server supports these options\n\t* **telnet.wont** : The server doesnt support these options"
+					},
+					"response": []
+				},
+				{
+					"name": "Break the search query into tokens",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/search/tokens?key={{API_KEY}}&query=dropbear* port:22",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"host",
+								"search",
+								"tokens"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "query",
+									"value": "dropbear* port:22"
+								}
+							]
+						},
+						"description": "This method lets you determine which filters are being used by the query string and what parameters were provided to the filters.\n\n**Parameters**\n* **query**: [String] Shodan search query. The provided string is used to search the database of banners in Shodan, with the additional option to provide filters inside the search query using a \"filter:value\" format. For example, the following search query would find Apache webservers located in Germany: \"apache country:DE\". The following filters are currently supported:\n\t* **after**: Only show results that were collected after the given date (dd/mm/yyyy).\n\t* **asn** : The Autonomous System Number that identifies the network the device is on.\n\t* **before** : Only show results that were collected before the given date (dd/mm/yyyy.\n\t* **city** : Show results that are located in the given city.\n\t* **country** : Show results that are located within the given country.\n\t* **geo** : There are 2 modes to the geo filter: radius and bounding box. To limit results based on a radius around a pair of latitude/ longitude, provide 3 parameters; ex: geo:50,50,100. If you want to find all results within a bounding box, supply the top left and bottom right coordinates for the region; ex: geo:10,10,50,50.\n\t* **hash** : Hash of the \"data\" property\n\t* **has_ipv6** : If \"true\" only show results that were discovered on IPv6.\n\t* **has_screenshot** : If \"true\" only show results that have a screenshot available.\n\t* **hostname** : Search for hosts that contain the given value in their hostname.\n\t* **isp** : Find devices based on the upstream owner of the IP netblock.\n\t* **link** : Find devices depending on their connection to the Internet.\n\t* **net** : Search by netblock using CIDR notation; ex: net:69.84.207.0/24\n\t* **org** : Find devices based on the owner of the IP netblock.\n\t* **os** : Filter results based on the operating system of the device.\n\t* **port** : Find devices based on the services/ ports that are publicly exposed on the Internet.\n\t* **postal** : Search by postal code.\n\t* **product** : Filter using the name of the software/ product; ex: product:Apache\n\t* **state** : Search for devices based on the state/ region they are located in.\n\t* **version** : Filter the results to include only products of the given version; ex: product:apache version:1.3.37\n\n\t* **bitcoin.ip** : Find Bitcoin servers that had the given IP in their list of peers.\n\t* **bitcoin.ip_count** : Find Bitcoin servers that return the given number of IPs in the list of peers.\n\t* **bitcoin.port** : Find Bitcoin servers that had IPs with the given port in their list of peers.\n\t* **bitcoin.version** : Filter results based on the Bitcoin protocol version.\n\n\t* **http.component** : Name of web technology used on the website\n\t* **http.component_category** : Category of web components used on the website\n\t* **http.html** : Search the HTML of the website for the given value.\n\t* **http.html_hash** : Hash of the website HTML\n\t* **http.status** : Response status code\n\t* **http.title** : Search the title of the website\n\n\t* **ntp.ip** : Find NTP servers that had the given IP in their monlist.\n\t* **ntp.ip_count** : Find NTP servers that return the given number of IPs in the initial monlist response.\n\t* **ntp.more** : Whether or not more IPs were available for the given NTP server.\n\t* **ntp.port** : Find NTP servers that had IPs with the given port in their monlist.\n\n\t* **ssl** : Search all SSL data\n\t* **ssl.alpn** : Application layer protocols such as HTTP/2 (\"h2\")\n\t* **ssl.chain_count** : Number of certificates in the chain\n\t* **ssl.version** : Possible values: SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2\n\t* **ssl.cert.alg** : Certificate algorithm\n\t* **ssl.cert.expired** : Whether the SSL certificate is expired or not; True/ False\n\t* **ssl.cert.extension** : Names of extensions in the certificate\n\t* **ssl.cert.serial** : Serial number as an integer or hexadecimal string\n\t* **ssl.cert.pubkey.bits** : Number of bits in the public key\n\t* **ssl.cert.pubkey.type** : Public key type\n\t* **ssl.cipher.version** : SSL version of the preferred cipher\n\t* **ssl.cipher.bits** : Number of bits in the preferred cipher\n\t* **ssl.cipher.name** : Name of the preferred cipher\n\n\t* **telnet.option** : Search all the options\n\t* **telnet.do** : The server requests the client to support these options\n\t* **telnet.dont** : The server requests the client to not support these options\n\t* **telnet.will** : The server supports these options\n\t* **telnet.wont** : The server doesnt support these options"
+					},
+					"response": []
+				},
+				{
+					"name": "List all ports that Shodan is crawling on the Internet.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/ports?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"ports"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "This method returns a list of port numbers that the crawlers are looking for."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Shodan On-Demand Scanning",
+			"item": [
+				{
+					"name": "List all protocols that can be used",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/protocols?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"protocols"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "This method returns an object containing all the protocols that can be used when launching an Internet scan."
+					},
+					"response": []
+				},
+				{
+					"name": "Request Shodan to crawl an IP/ netblock",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "ips",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/scan?key={{API_KEY}}&ips=",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"scan"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "ips",
+									"value": ""
+								}
+							]
+						},
+						"description": "Use this method to request Shodan to crawl a network.\r\n\r\n\r\n**Requirements**\r\n\r\nThis method uses API scan credits: 1 IP consumes 1 scan credit. You must have a paid API plan (either one-time payment or subscription) in order to use this method.\r\n\r\n**Parameters**\r\n* **ips**:[String] A comma-separated list of IPs or netblocks (in CIDR notation) that should get crawled."
+					},
+					"response": []
+				},
+				{
+					"name": "Crawl the Internet for a specific port and protocol",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "port",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "protocol",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/scan/internet?key={{API_KEY}}&port=&protocol=",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"scan",
+								"internet"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "port",
+									"value": ""
+								},
+								{
+									"key": "protocol",
+									"value": ""
+								}
+							]
+						},
+						"description": "Use this method to request Shodan to crawl the Internet for a specific port.\r\n\r\n**Requirements**\r\n\r\nThis method is restricted to security researchers and companies with a Shodan Enterprise Data license. To apply for access to this method as a researcher, please email jmath@shodan.io with information about your project. Access is restricted to prevent abuse.\r\n\r\n**Parameters**\r\n* **port**:[Integer] The port that Shodan should crawl the Internet for.\r\n* **protocol**:[String] The name of the protocol that should be used to interrogate the port. See /shodan/protocols for a list of supported protocols."
+					},
+					"response": []
+				},
+				{
+					"name": "Get the status of a scan request",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"var scan_id = pm.environment.get(\"scan_id\");\r",
+									"if (typeof scan_id == \"undefined\") {\r",
+									"    console.log(\"setting a dummy scan_id (taken from the shodan website) : R2XRT5HH6X67PFAB\");\r",
+									"    pm.environment.set(\"scan_id\", \"R2XRT5HH6X67PFAB\");\r",
+									"}\r",
+									"console.log(\"using scan_id \"+pm.environment.get(\"scan_id\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/scan/{{scan_id}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"scan",
+								"{{scan_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Check the progress of a previously submitted scan request. Possible values for the status are:"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Shodan Network Alerts",
+			"item": [
+				{
+					"name": "Create an alert to monitor a network range",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									"var jsonData = pm.response.json(), alert_id;",
+									"if (\"id\" in jsonData) {",
+									"    console.log(\"setting env.var alert_id to \"+jsonData.id);",
+									"    pm.environment.set(\"alert_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Test Alert\",\n\t\"filters\": {\n\t\t\"ip\": [\"198.20.88.0\"]\n\t},\n\t\"expires\": 300\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Use this method to create a network alert for a defined IP/ netblock which can be used to subscribe to changes/ events that are discovered within that range.\n\n**Parameters**\nThe alert is created by sending a JSON encoded object that has the structure:\n\n\t{\n\t 'name': {name},\n\t 'filters': {\n\t  'ip': {ip},\n\t },\n\t 'expires': {expires},\n\t}\n\t\n* **name**: [String] The name to describe the network alert.\n* **filters**: [Object] An object specifying the criteria that an alert should trigger. The only supported option at the moment is the \"ip\" filter.\n* **filters.ip**: [String] A list of IPs or network ranges defined using CIDR notation.\n* **expires** (optional): [Integer] Number of seconds that the alert should be active."
+					},
+					"response": []
+				},
+				{
+					"name": "Get the details for a network alert",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"var alert_id = pm.environment.get(\"alert_id\");\r",
+									"if (typeof alert_id == \"undefined\") {\r",
+									"    console.log(\"setting a dummy alert_id (taken from the shodan website) : HKVGCP1WD79Z7W2T\");\r",
+									"    pm.environment.set(\"alert_id\", \"HKVGCP1WD79Z7W2T\");\r",
+									"}\r",
+									"console.log(\"using alert_id \"+pm.environment.get(\"alert_id\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}/info?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}",
+								"info"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Returns the information about a specific network alert.\n\n**Parameters**\n* **id**: [String] Alert ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an alert",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"var alert_id = pm.environment.get(\"alert_id\");\r",
+									"if (typeof alert_id == \"undefined\") {\r",
+									"    console.log(\"setting a dummy alert_id (taken from the shodan website) : HKVGCP1WD79Z7W2T\");\r",
+									"    pm.environment.set(\"alert_id\", \"HKVGCP1WD79Z7W2T\");\r",
+									"}\r",
+									"console.log(\"using alert_id \"+pm.environment.get(\"alert_id\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Remove the specified network alert.\n\n**Parameters**\n* **id**: [String] Alert ID\n\n**NOTE:**\nIf *{{alert_id}}* is present in the url and an alert was created before, then it will delete that alert"
+					},
+					"response": []
+				},
+				{
+					"name": "Get a list of all the created alerts",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/info?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"info"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Returns a listing of all the network alerts that are currently active on the account."
+					},
+					"response": []
+				},
+				{
+					"name": "Get a list of available triggers",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/triggers?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"triggers"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Returns a list of all the triggers that can be enabled on network alerts."
+					},
+					"response": []
+				},
+				{
+					"name": "Enable a trigger",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"var trigger = pm.environment.get(\"trigger\");\r",
+									"if (typeof trigger == \"undefined\") {\r",
+									"    console.log(\"setting default trigger : malware\");\r",
+									"    pm.environment.set(\"trigger\", \"malware\");\r",
+									"}\r",
+									"console.log(\"using trigger \"+pm.environment.get(\"trigger\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}/trigger/{{trigger}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}",
+								"trigger",
+								"{{trigger}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Get notifications when the specified trigger is met.\n\n**Parameters**\n* **id**: [String] Alert ID\n* **trigger**: [String] Trigger name"
+					},
+					"response": []
+				},
+				{
+					"name": "Disable a trigger",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"var trigger = pm.environment.get(\"trigger\");\r",
+									"if (typeof trigger == \"undefined\") {\r",
+									"    console.log(\"setting default trigger : malware\");\r",
+									"    pm.environment.set(\"trigger\", \"malware\");\r",
+									"}\r",
+									"console.log(\"using trigger \"+pm.environment.get(\"trigger\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}/trigger/{{trigger}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}",
+								"trigger",
+								"{{trigger}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Stop getting notifications for the specified trigger.\n\n**Parameters**\n* **id**: [String] Alert ID\n* **trigger**: [String] Trigger name"
+					},
+					"response": []
+				},
+				{
+					"name": "Add to Whitelist",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}/trigger/{{trigger}}/ignore/{{service}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}",
+								"trigger",
+								"{{trigger}}",
+								"ignore",
+								"{{service}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Ignore the specified service when it is matched for the trigger.\n\n**Parameters**\n* **id**: [String] Alert ID\n* **trigger**: [String] Trigger name\n* **service**: [String] Service specified in the format \"ip:port\" (ex. \"1.1.1.1:80\")"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove from Whitelist",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}/trigger/{{trigger}}/ignore/{{service}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}",
+								"trigger",
+								"{{trigger}}",
+								"ignore",
+								"{{service}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Start getting notifications again for the specified trigger.\n\n**Parameters**\n* **id**: [String] Alert ID\n* **trigger**: [String] Trigger name\n* **service**: [String] Service specified in the format \"ip:port\" (ex. \"1.1.1.1:80\")"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Shodan Directory Methods",
+			"item": [
+				{
+					"name": "List the saved search queries",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/query?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "page",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "order",
+									"value": null,
+									"disabled": true
+								}
+							]
+						},
+						"description": "Use this method to obtain a list of search queries that users have saved in Shodan.\n\n**Parameters**\n* **page** (optional): [Integer] Page number to iterate over results; each page contains 10 items\n* **sort** (optional): [String] Sort the list based on a property. Possible values are: votes, timestamp\n* **order** (optional): [String] Whether to sort the list in ascending or descending order. Possible values are: asc, desc"
+					},
+					"response": []
+				},
+				{
+					"name": "List the saved search queries - order by popularity",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									"var template = `",
+									"    <style type=\"text/css\" id=\"css\">",
+									"        .tftable {font-size:14px;color:#333333;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+									"        .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+									"        .tftable .type th {background-color:#327996;color:#E1E1E1;}",
+									"        .tftable tr {background-color:#ffffff;}",
+									"        .tftable td {font-size:14px;border-width: 1px;padding: 8px 20px 8px 8px;border-style: solid;border-color: #87ceeb;}",
+									"        .tftable tr:hover {background-color:#e0ffff;}",
+									"        .tftable .click {cursor: pointer;}",
+									"    </style>",
+									"    <table class=\"tftable\" border=\"1\" id=\"responseTable\">",
+									"        <tr><th>Votes</th><th>Description</th><th>Tags</th><th>Timestamp</th><th>Title</th><th>Query</th></tr>",
+									"        {{#each response}}",
+									"        <tr>",
+									"            <td>{{votes}}</td>",
+									"            <td>{{description}}</td>",
+									"            <td>{{tags}}</td>",
+									"            <td>{{timestamp}}</td>",
+									"            <td>{{title}}</td>",
+									"            <td class=\"click\" onClick=\"console.log(pm);pm.setNextRequest('Host Search Special');\">{{query}}</td>",
+									"        </tr>",
+									"        {{/each}}",
+									"    </table>",
+									"`;",
+									"jsonData = pm.response.json();",
+									"pm.visualizer.set(template, {",
+									"    response: jsonData.matches",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/query?key={{API_KEY}}&sort=votes&order=desc",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "page",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "votes"
+								},
+								{
+									"key": "order",
+									"value": "desc"
+								}
+							]
+						},
+						"description": "Use this method to obtain a list of search queries that users have saved in Shodan.\nThis is sorted DESC by 'votes'"
+					},
+					"response": []
+				},
+				{
+					"name": "Search the directory of saved search queries.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/query/search?key={{API_KEY}}&query=cam",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"query",
+								"search"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "query",
+									"value": "cam",
+									"description": "This is just an example value. Change it to match whatever you want to search for"
+								},
+								{
+									"key": "page",
+									"value": null,
+									"disabled": true
+								}
+							]
+						},
+						"description": "Use this method to search the directory of search queries that users have saved in Shodan.\n\n**Parameters**\n* **query**: [String] What to search for in the directory of saved search queries.\n* **page** (optional): [Integer] Page number to iterate over results; each page contains 10 items"
+					},
+					"response": []
+				},
+				{
+					"name": "List the most popular tags",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/query/tags?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"query",
+								"tags"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "size",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Use this method to obtain a list of popular tags for the saved search queries in Shodan.\n\n**Parameters**\n* **size** (optional): [Integer] The number of tags to return (default: 10)."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Shodan Bulk Data",
+			"item": [
+				{
+					"name": "Get a list of available datasets",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/data?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"data"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Use this method to see a list of the datasets that are available for download.\n\n**NOTE** : Enterprise only"
+					},
+					"response": []
+				},
+				{
+					"name": "List the files for a dataset",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/data/{{dataset}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"data",
+								"{{dataset}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Get a list of files that are available for download from the provided dataset.\n\n**Parameters**\n* **dataset**: [String] Name of the dataset\n\n**NOTE** : Enterprise only"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Manage Organization",
+			"item": [
+				{
+					"name": "General Information",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/org?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"org"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Get information about your organization such as the list of its members, upgrades, authorized domains and more.\n\n**NOTE**: Enterprise only"
+					},
+					"response": []
+				},
+				{
+					"name": "Add a new member",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/org/member/{{user}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"org",
+								"member",
+								"{{user}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Add a Shodan user to the organization and upgrade them.\n\n**Parameters**\n* **user**: [String] Username or email of the Shodan user\n* **notify** (optional): [Bool] Whether or not to send an email notification\n\n**NOTE**: Enterprise only"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove a member",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/org/member/{{user}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"org",
+								"member",
+								"{{user}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Remove and downgrade the provided member from the organization.\r\n\r\n**Parameters**\r\n* **user**: [String] Username or email of the Shodan user\r\n\r\n**NOTE**: Enterprise only"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Account Methods",
+			"item": [
+				{
+					"name": "Account Profile",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{ACCOUNT_BASE_URL}}/profile?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{ACCOUNT_BASE_URL}}"
+							],
+							"path": [
+								"profile"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Returns information about the Shodan account linked to this API key."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "DNS Methods",
+			"item": [
+				{
+					"name": "Domain Information",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"var domain = pm.environment.get(\"domain\");\r",
+									"if (typeof ip == \"undefined\") {\r",
+									"    pm.environment.set(\"domain\", \"shodan.io\");\r",
+									"}\r",
+									"console.log(\"domain is set to \"+pm.environment.get(\"domain\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{DNS_BASE_URL}}/domain/{{domain}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{DNS_BASE_URL}}"
+							],
+							"path": [
+								"domain",
+								"{{domain}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Get all the subdomains and other DNS entries for the given domain. Uses 1 query credit per lookup.\n\n**Parameters**\n* **domain**: [String] Domain name to lookup; example \"cnn.com\""
+					},
+					"response": []
+				},
+				{
+					"name": "DNS Lookup",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{DNS_BASE_URL}}/resolve?key={{API_KEY}}&hostnames=google.com,shodan.io",
+							"host": [
+								"{{API_DOMAIN}}{{DNS_BASE_URL}}"
+							],
+							"path": [
+								"resolve"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "hostnames",
+									"value": "google.com,shodan.io",
+									"description": "This is an example value. Please change it to the domain(s) you're interested in"
+								}
+							]
+						},
+						"description": "Look up the IP address for the provided list of hostnames.\n\n**Parameters**\n* **hostnames**: [String] Comma-separated list of hostnames; example \"google.com,bing.com\""
+					},
+					"response": []
+				},
+				{
+					"name": "Reverse DNS Lookup",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{DNS_BASE_URL}}/reverse?key={{API_KEY}}&ips=216.117.2.180,216.117.2.182",
+							"host": [
+								"{{API_DOMAIN}}{{DNS_BASE_URL}}"
+							],
+							"path": [
+								"reverse"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "ips",
+									"value": "216.117.2.180,216.117.2.182",
+									"description": "This is an example value. Please change it to the ip(s) you're interested in"
+								}
+							]
+						},
+						"description": "Look up the hostnames that have been defined for the given list of IP addresses.\n\n**Parameters**\n* **ips**: [String] Comma-separated list of IP addresses; example \"74.125.227.230,204.79.197.200\""
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Utility Methods",
+			"item": [
+				{
+					"name": "HTTP Headers",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{TOOLS_BASE_URL}}/httpheaders?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{TOOLS_BASE_URL}}"
+							],
+							"path": [
+								"httpheaders"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Shows the HTTP headers that your client sends when connecting to a webserver."
+					},
+					"response": []
+				},
+				{
+					"name": "My IP Address",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									"var ip = pm.response.json()",
+									"if (typeof ip != \"undefined\") {",
+									"    console.log(\"setting env.var ip to \"+ip);",
+									"    pm.environment.set(\"ip\", ip);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{TOOLS_BASE_URL}}/myip?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{TOOLS_BASE_URL}}"
+							],
+							"path": [
+								"myip"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Get your current IP address as seen from the Internet."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "API Status Methods",
+			"item": [
+				{
+					"name": "API Plan Information",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}/api-info?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}"
+							],
+							"path": [
+								"api-info"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Returns information about the API plan belonging to the given API key."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Experimental Methods",
+			"item": [
+				{
+					"name": "Honeyscore",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									"function getRandomIp() {",
+									"    return (Math.floor(Math.random() * 255) + 1)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0)+\".\"+(Math.floor(Math.random() * 255) + 0);",
+									"}",
+									"var ip = pm.environment.get(\"ip\");",
+									"if (typeof ip == \"undefined\") {",
+									"    pm.environment.set(\"ip\", getRandomIp());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{EXP_BASE_URL}}/honeyscore/{{ip}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{EXP_BASE_URL}}"
+							],
+							"path": [
+								"honeyscore",
+								"{{ip}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Calculates a honeypot probability score ranging from 0 (not a honeypot) to 1.0 (is a honeypot).\n\n**Parameters**\n* **ip**: [String] Host IP address"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Shodan Data Streams",
+			"item": [
+				{
+					"name": "Banners",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/banners?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"banners"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "This stream provides ALL of the data that Shodan collects. Use this stream if you need access to everything and/ or want to store your own Shodan database locally. If you only care about specific ports, please use the Ports stream."
+					},
+					"response": []
+				},
+				{
+					"name": "Filtered by ASN",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/asn/{{asn}}?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"asn",
+								"{{asn}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "This stream provides a filtered, bandwidth-saving view of the Banners stream in case you are only interested in devices located in certain ASNs.\n\n**Parameters**\n* **asn**: [String] Comma-separated list of ASNs; example \"3303,32475\""
+					},
+					"response": []
+				},
+				{
+					"name": "Filtered by Country",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/countries/{{countries}}?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"countries",
+								"{{countries}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "This stream provides a filtered, bandwidth-saving view of the Banners stream in case you are only interested in devices located in certain countries.\n\n**Parameters**\n* **countries**: [String] Comma-separated list of countries indicated by their 2 letter code; example \"DE,US\""
+					},
+					"response": []
+				},
+				{
+					"name": "Filtered by Ports",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/ports/{{ports}}?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"ports",
+								"{{ports}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Only returns banner data for the list of specified ports. This stream provides a filtered, bandwidth-saving view of the Banners stream in case you are only interested in a specific list of ports.\n\n**Parameters**\n* **ports**: [String] Comma-separated list of ports; example \"1434,27017,6379\""
+					},
+					"response": []
+				},
+				{
+					"name": "All Network Alerts",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/alert?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Subscribe to banners discovered on all IP ranges described in the network alerts."
+					},
+					"response": []
+				},
+				{
+					"name": "Network Alerts Filtered by Alert ID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/alert{{alert_id}}?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert{{alert_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Subscribe to banners discovered on the IP range defined in a specific network alert.\n\n**Parameters**\n* **id**: [String] The unique ID of the network alert; example \"HKVGAIRWD79Z7W2T\""
+					},
+					"response": []
+				}
+			],
+			"description": "The Streaming API is an HTTP-based service that returns a real-time stream of data collected by Shodan. The stream returns the information as a JSON-encoded string using 2 output formats that can be set using the \"t\" URL parameter:\r\n\r\n* json\r\n\tEach item is separated by a newline. For example, the Banners stream returns 1 banner per line where the banner contains all of the data that was just collected for a given service on the Internet.\r\n\r\n* sse\r\n\tOutputs the JSON data using the Server-Sent Events protocol, making it easy to consume directly in the browser.\r\n\r\nThe base URL for all of these methods is:\r\n\r\n\thttps://stream.shodan.io",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e681a515-2c59-494e-81f7-1d4263866a2b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8376da55-d903-4a9b-8f20-51fa875d7027",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Shodan Exploits Methods",
+			"item": [
+				{
+					"name": "Search for Exploits",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}/search?key={{API_KEY}}&query=description:\"xss\" source:\"CVE\"",
+							"host": [
+								"{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "query",
+									"value": "description:\"xss\" source:\"CVE\"",
+									"description": "This is an example value. You can replace it with your own query"
+								},
+								{
+									"key": "facets ",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "page ",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Search across a variety of data sources for exploits and use facets to get summary information.\n\n**Parameters**\n* **query**: [String] Search query used to search the database of known exploits. Possible search filters are:\n\t* **author** : The author of the exploit/ vulnerability.\n\t* **bid** : The Bugtraq ID for the exploit.\n\t* **code** : The actual code of the exploit.\n\t* **cve** : The Common Vulnerability and Exposures ID for the exploit.\n\t* **date** : When the exploit was released.\n\t* **description** : The description of the exploit, how it works and where it applies.\n\t* **msb** : The Microsoft Security Bulletin ID for the exploit.\n\t* **osvdb** : The Open Source Vulnerability Database ID for the exploit.\n\t* **platform** : The operating system that the exploit targets.\n\t* **port** : The port number for the affected service if the exploit is remote.\n\t* **title** : The title or short description for the exploit if available.\n\t* **type** : The category of exploit, possible values are:\n\t\t* **dos**\n\t\t* **exploit**\n\t\t* **local**\n\t\t* **remote**\n\t\t* **shellcode**\n\t\t* **webapps**\n* **facets** (optional): [String] A comma-separated list of properties to get summary information on. The following facets are currently supported:\n\t* **author**\n\t* **platform**\n\t* **port**\n\t* **source**\n\t* **type**\n* **page** (optional): [Integer] The page number to page through results 100 at a time."
+					},
+					"response": []
+				},
+				{
+					"name": "Search for Exploits without Results",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}/count?key={{API_KEY}}&query=description:\"xss\" source:\"CVE\"",
+							"host": [
+								"{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}"
+							],
+							"path": [
+								"count"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "query",
+									"value": "description:\"xss\" source:\"CVE\"",
+									"description": "This is an example value. You can replace it with your own query"
+								},
+								{
+									"key": "facets ",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "page ",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "This method behaves identical to the \"/search\" method with the difference that it doesn't return any results.\n\nSearch across a variety of data sources for exploits and use facets to get summary information.\n\n**Parameters**\n* **query**: [String] Search query used to search the database of known exploits. Possible search filters are:\n\t* **author** : The author of the exploit/ vulnerability.\n\t* **bid** : The Bugtraq ID for the exploit.\n\t* **code** : The actual code of the exploit.\n\t* **cve** : The Common Vulnerability and Exposures ID for the exploit.\n\t* **date** : When the exploit was released.\n\t* **description** : The description of the exploit, how it works and where it applies.\n\t* **msb** : The Microsoft Security Bulletin ID for the exploit.\n\t* **osvdb** : The Open Source Vulnerability Database ID for the exploit.\n\t* **platform** : The operating system that the exploit targets.\n\t* **port** : The port number for the affected service if the exploit is remote.\n\t* **title** : The title or short description for the exploit if available.\n\t* **type** : The category of exploit, possible values are:\n\t\t* **dos**\n\t\t* **exploit**\n\t\t* **local**\n\t\t* **remote**\n\t\t* **shellcode**\n\t\t* **webapps**\n* **facets** (optional): [String] A comma-separated list of properties to get summary information on. The following facets are currently supported:\n\t* **author**\n\t* **platform**\n\t* **port**\n\t* **source**\n\t* **type**\n* **page** (optional): [Integer] The page number to page through results 100 at a time."
+					},
+					"response": []
+				}
+			],
+			"description": "The Exploits API provides access to several exploit/ vulnerability data sources. At the moment, it searches across the following:\r\n\r\n* Exploit DB\r\n* Metasploit\r\n* Common Vulnerabilities and Exposures (CVE)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "27f545ff-285c-45d2-b602-8cba20a0982d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "104d157b-1c3c-4159-8af4-a70b0222df5c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
