@@ -2101,9 +2101,9 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/org?key={{API_KEY}}",
+							"raw": "{{API_DOMAIN}}/org?key={{API_KEY}}",
 							"host": [
-								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+								"{{API_DOMAIN}}"
 							],
 							"path": [
 								"org"
@@ -2158,9 +2158,9 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/org/member/{{user}}?key={{API_KEY}}",
+							"raw": "{{API_DOMAIN}}/org/member/{{user}}?key={{API_KEY}}",
 							"host": [
-								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+								"{{API_DOMAIN}}"
 							],
 							"path": [
 								"org",
@@ -2217,9 +2217,9 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/org/member/{{user}}?key={{API_KEY}}",
+							"raw": "{{API_DOMAIN}}/org/member/{{user}}?key={{API_KEY}}",
 							"host": [
-								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+								"{{API_DOMAIN}}"
 							],
 							"path": [
 								"org",
