@@ -526,7 +526,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/count?key={{API_KEY}}&query=country:\"NL\" after:\"01/01/2019\"&facets=city,device",
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/host/count?key={{API_KEY}}&query&facets",
 							"host": [
 								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
 							],
@@ -541,12 +541,12 @@
 								},
 								{
 									"key": "query",
-									"value": "country:\"NL\" after:\"01/01/2019\"",
+									"value": null,
 									"description": "This is an example vaue. Replace it with your own query"
 								},
 								{
 									"key": "facets",
-									"value": "city,device",
+									"value": null,
 									"description": "This is an example vaue. Replace it with your own filters"
 								}
 							]
@@ -617,7 +617,7 @@
 								},
 								{
 									"key": "facets",
-									"value": "version",
+									"value": null,
 									"description": "This is an example vaue. Replace it with your own filter",
 									"disabled": true
 								}
@@ -1249,6 +1249,79 @@
 							"script": {
 								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
 								"exec": [
+									"var template = `",
+									"    <style type=\"text/css\" id=\"css\">",
+									"        #responseTable {font-size:14px;color:#333333;border-width: 1px;border-color: #87CEEB;border-collapse: collapse;font-family:Raleway,HelveticaNeue,\"Helvetica Neue\",Helvetica,Arial,sans-serif;}",
+									"        #responseTable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87CEEB;text-align:left;}",
+									"        #responseTable .type th {background-color:#327996;color:#E1E1E1;}",
+									"        #responseTable tr {background-color:#FFFFFF;}",
+									"        #responseTable td {font-size:14px;border-width: 1px;padding: 8px 20px 8px 8px;border-style: solid;border-color: #87CEEB;}",
+									"        #responseTable tr:hover {background-color:#F5F5F5;}",
+									"        .setAlert {padding: 5px 10px;background-color:#F5F5F5;border:1px solid #D1D1D1;border-radius:4px;color:#999;text-decoration:none;display:inline;line-height:24px}",
+									"        .setAlert:hover {background-color:#E5E5E5;}",
+									"        code { background-color: transparent; border-width: 0px; }",
+									"        em { background-color: #F5F5F5; border: 1px solid #D1D1D1; padding: 1px 2px;}",
+									"    </style>",
+									"",
+									"    <h2>Created Alerts</h2>",
+									"    <table id=\"responseTable\">",
+									"        <tr><th>ID</th><th>Name</th><th>Created</th><th>Triggers</th><th>Expires</th><th>Notify</th><th>Expiration</th><th>Filters</th><th>Notifiers</th></tr>",
+									"        {{#each response}}",
+									"        <tr>",
+									"            <td>{{id}}</td>",
+									"            <td>{{name}}</td>",
+									"            <td>{{created}}</td>",
+									"            <td>{{triggers}}</td>",
+									"            <td>{{expires}}</td>",
+									"            <td>{{notify}}</td>",
+									"            <td>{{expiration}}</td>",
+									"            <td><ul>{{#each filterList}}<li>{{this}}</li>{{/each}}</ul></td>",
+									"            <td>{{notifiers}}</td>",
+									"            <!--<td><button class=\"setAlert\" id=\"set_{{id}}\" value=\"{{id}}\">set as variable</button></td>-->",
+									"        </tr>",
+									"        {{/each}}",
+									"    </table>",
+									"    <!--",
+									"    // unfortunately there is no way to do this in Postman at the moment",
+									"    <p id=\"createMessage\">",
+									"        Click on the <em>Set as variable</em> button of an alert to set that Alert ID as an environment variable.<br>",
+									"        This means that this value will be used for all the calls that have an <code>&#123;&#123;alert_id&#125;&#125;</code> variable. See for example:",
+									"        <ul>",
+									"            <li>Shodan Network Alerts &gt; Delete an alert</li>",
+									"            <li>Shodan Network Alerts &gt; Add the notifier to the alert</li>",
+									"            <li>etc.</li>",
+									"        </ul>",
+									"    </p>",
+									"    -->",
+									"`;",
+									"jsonData = pm.response.json();",
+									"for (var o in jsonData) {",
+									"  obj = jsonData[o];",
+									"  if (!obj.has_triggers) {",
+									"      obj.triggers = \"\";",
+									"  }",
+									"  if (Object.keys(obj.notify).length === 0) {",
+									"      obj.notify = \"\";",
+									"  }",
+									"  if (obj.notifiers.length === 0) {",
+									"      obj.notifiers = \"\";",
+									"  }",
+									"  obj.filterList = [];",
+									"  var filterKeys = Object.keys(obj.filters);",
+									"  if (filterKeys.length > 0) {",
+									"    for (var k in filterKeys) {",
+									"        prop = filterKeys[k];",
+									"        for (var l in obj.filters[prop]) {",
+									"            obj.filterList.push(prop+\": \"+obj.filters[prop][l]);",
+									"        }",
+									"    }",
+									"  }",
+									"  jsonData[o] = obj;",
+									"}",
+									"pm.visualizer.set(template, {",
+									"    // Pass the response body parsed as JSON as `data`",
+									"    response: jsonData",
+									"});",
 									""
 								],
 								"type": "text/javascript"
@@ -1289,6 +1362,129 @@
 							]
 						},
 						"description": "Returns a listing of all the network alerts that are currently active on the account."
+					},
+					"response": []
+				},
+				{
+					"name": "Add the notifier to the alert",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}/notifier/{{notifier_id}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}",
+								"notifier",
+								"{{notifier_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Add the notifier to the alert\nAdd the specified notifier to the network alert. Notifications are only sent if triggers have also been enabled.\n\n**Parameters**\n* **id**: [String] Alert ID\n* **notifier_id**: [String] Notifier ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove the notifier from the alert",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}{{SHODAN_BASE_URL}}/alert/{{alert_id}}/notifier/{{notifier_id}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"alert",
+								"{{alert_id}}",
+								"notifier",
+								"{{notifier_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Add the notifier to the alert\nAdd the specified notifier to the network alert. Notifications are only sent if triggers have also been enabled.\n\n**Parameters**\n* **id**: [String] Alert ID\n* **notifier_id**: [String] Notifier ID"
 					},
 					"response": []
 				},
@@ -1604,6 +1800,474 @@
 							]
 						},
 						"description": "Start getting notifications again for the specified trigger.\n\n**Parameters**\n* **id**: [String] Alert ID\n* **trigger**: [String] Trigger name\n* **service**: [String] Service specified in the format \"ip:port\" (ex. \"1.1.1.1:80\")"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Notifiers",
+			"item": [
+				{
+					"name": "List all user-created notifiers",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}/notifier?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}"
+							],
+							"path": [
+								"notifier"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Get a list of all the notifiers that the user has created."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a new notification service for the user",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									"var jsonData = pm.response.json(), notifier_id;",
+									"if (\"id\" in jsonData) {",
+									"    console.log(\"setting env.var notifier_id to \"+jsonData.id);",
+									"    pm.environment.set(\"notifier_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}",
+									"type": "text"
+								},
+								{
+									"key": "provider",
+									"value": "",
+									"description": "mandatory. used in combination with one or more parameters below",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "",
+									"description": "optional",
+									"type": "text"
+								},
+								{
+									"key": "routing_key",
+									"value": "",
+									"description": "provider:pagerduty",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "webhook_url",
+									"value": "",
+									"description": "provider:slack",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "chat_id",
+									"value": "",
+									"description": "provider:telegram",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "token",
+									"value": "",
+									"description": "provider:telegram,token",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "url",
+									"value": "",
+									"description": "provider:webhook",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "to",
+									"value": "",
+									"description": "provider:phone,email",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "room_id",
+									"value": "",
+									"description": "provider:gitter",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}/notifier",
+							"host": [
+								"{{API_DOMAIN}}"
+							],
+							"path": [
+								"notifier"
+							]
+						},
+						"description": "Use this method to create a new notification service endpoint that Shodan services can send notifications through.\n\n**Parameters**<br>\nThe parameters depend on the type of notification service that is being created. To get a list of parameters for a provider us the /notifier/provider endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "List of available notification providers",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}/notifier/provider?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}"
+							],
+							"path": [
+								"notifier",
+								"provider"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Get a list of all the notification providers that are available and the parameters to submit when creating them."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a notification service",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}/notifier/{{notifier_id}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}"
+							],
+							"path": [
+								"notifier",
+								"{{notifier_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Remove the notification service created for the user.\n\n**Parameters**\n* **id** [String] Notifier ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get information about a notifier",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}/notifier/{{notifier_id}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}"
+							],
+							"path": [
+								"notifier",
+								"{{notifier_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Use this method to create a new notification service endpoint that Shodan services can send notifications through.\n\n**Parameters**\n* **id** [String] Notifier ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Edit a notifier",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c39fed4-cfcd-4672-9866-4e08c657dd4e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f34b4444-575a-4767-8efb-b1c512f65a2c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{API_DOMAIN}}/notifier/{{notifier_id}}?key={{API_KEY}}",
+							"host": [
+								"{{API_DOMAIN}}"
+							],
+							"path": [
+								"notifier",
+								"{{notifier_id}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								},
+								{
+									"key": "routing_key",
+									"value": "",
+									"description": "pagerduty",
+									"disabled": true
+								},
+								{
+									"key": "webhook_url",
+									"value": null,
+									"description": "slack",
+									"disabled": true
+								},
+								{
+									"key": "chat_id",
+									"value": null,
+									"description": "telegram",
+									"disabled": true
+								},
+								{
+									"key": "token",
+									"value": null,
+									"description": "telegram,gitter",
+									"disabled": true
+								},
+								{
+									"key": "url",
+									"value": "",
+									"description": "webhook",
+									"disabled": true
+								},
+								{
+									"key": "to",
+									"value": null,
+									"description": "phone,email",
+									"disabled": true
+								},
+								{
+									"key": "room_id",
+									"value": null,
+									"description": "gitter",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Use this method to update the parameters of a notifier.\n\n**Parameters**\n* **id** [String] Notifier ID\n\n* Please note that you can not change the provider itself. In order to do that you need to simply delete the notifier and create a new one\n* Please also note that you can currently not change the description"
 					},
 					"response": []
 				}
