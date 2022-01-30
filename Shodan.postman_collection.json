@@ -1902,11 +1902,8 @@
 							}
 						}
 					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
 					"request": {
-						"method": "GET",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -3707,7 +3704,10 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									""
+									"var countries = pm.environment.get(\"countries\");\r",
+									"if (typeof countries == \"undefined\") {\r",
+									"    pm.environment.set(\"countries\", \"NL,US\");\r",
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -3766,7 +3766,10 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									""
+									"var ports = pm.environment.get(\"ports\");\r",
+									"if (typeof ports == \"undefined\") {\r",
+									"    pm.environment.set(\"ports\", \"22,443\");\r",
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -3815,6 +3818,145 @@
 							]
 						},
 						"description": "Only returns banner data for the list of specified ports. This stream provides a filtered, bandwidth-saving view of the Banners stream in case you are only interested in a specific list of ports.\n\n**Parameters**\n* **ports**: [String] Comma-separated list of ports; example \"1434,27017,6379\""
+					},
+					"response": []
+				},
+				{
+					"name": "Filtered by Vulnerabilities",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var vulns = pm.environment.get(\"vulns\");\r",
+									"if (typeof vulns == \"undefined\") {\r",
+									"    pm.environment.set(\"vulns\", \"CVE-2017-7679,CVE-2018-15919\");\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/vulns/{{vulns}}?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"vulns",
+								"{{vulns}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Only returns banner data for the list of specified vulnerabilities. This stream provides a filtered, bandwidth-saving view of the Banners stream in case you are only interested in a specific list of vulnerabilities.\n\n**Parameters**\n* **vulns**: [String] Comma-separated list of case-insensitive vulnerabilities; example \"CVE-2017-7679,CVE-2018-15919\""
+					},
+					"response": []
+				},
+				{
+					"name": "Filtered by Custom Query",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "query",
+									"value": "port:22 SSH-2.0-OpenSSH_6.4",
+									"type": "text"
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}/custom/?key={{API_KEY}}",
+							"host": [
+								"{{STREAM_DOMAIN}}{{SHODAN_BASE_URL}}"
+							],
+							"path": [
+								"custom",
+								""
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "Only returns banner data for the specified query. This stream provides a filtered, bandwidth-saving view of the Banners stream in case you are only interested in banners matching a specific query. It generally follows the query syntax of the main search engine except that here the query is **case-sensitive**! The list of available keys can be found at Search Filters. Put a \"-\" or \"!\" before the key to negate the filter terms.\n\n**Parameters**\n* **query**: [String] Space-separated list of case-sensitive key:value filters or data query; example \"port:8080,443\", \"port:22 SSH-2.0-OpenSSH_6.4\", \"!country:VN\""
 					},
 					"response": []
 				}
