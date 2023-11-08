@@ -4147,9 +4147,9 @@
 							"formdata": []
 						},
 						"url": {
-							"raw": "{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}/search?key={{API_KEY}}&query=description:\"xss\" source:\"CVE\"",
+							"raw": "{{EXPLOITS_DOMAIN}}{{API_BASE_URL}}/search?key={{API_KEY}}&query=description:\"xss\" source:\"CVE\"",
 							"host": [
-								"{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}"
+								"{{EXPLOITS_DOMAIN}}{{API_BASE_URL}}"
 							],
 							"path": [
 								"search"
@@ -4220,9 +4220,9 @@
 							"formdata": []
 						},
 						"url": {
-							"raw": "{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}/count?key={{API_KEY}}&query=description:\"xss\" source:\"CVE\"",
+							"raw": "{{EXPLOITS_DOMAIN}}{{API_BASE_URL}}/count?key={{API_KEY}}&query=description:\"xss\" source:\"CVE\"",
 							"host": [
-								"{{EXPLOITS_DOMAIN}}{{EXPLOITS_BASE_URL}}"
+								"{{EXPLOITS_DOMAIN}}{{API_BASE_URL}}"
 							],
 							"path": [
 								"count"
@@ -4273,6 +4273,195 @@
 							""
 						]
 					}
+				}
+			]
+		},
+		{
+			"name": "Historical Data",
+			"item": [
+				{
+					"name": "Historical results",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{TRENDS_DOMAIN}}{{TRENDS_BASE_URL}}/search?query=product:nginx&facets=country:10&key={{API_KEY}}",
+							"host": [
+								"{{TRENDS_DOMAIN}}{{TRENDS_BASE_URL}}"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "product:nginx"
+								},
+								{
+									"key": "facets",
+									"value": "country:10"
+								},
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "StartFragment\n\n###### **Trends**\n\nGet breakdown of historical results aggregate by facet field.\n\nEndFragmentStartFragment\n\n###### **Parameters**\n\n- **query:** \\[String\\] Search query used to search the historical database, e.g. product:nginx\n- **facets (optional):** \\[String\\] A comma-separated list of properties to get summary information on. e.g. country\n    \n\nEndFragment"
+					},
+					"response": []
+				},
+				{
+					"name": "List all filters",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{TRENDS_DOMAIN}}{{TRENDS_BASE_URL}}/search/filters?key={{API_KEY}}",
+							"host": [
+								"{{TRENDS_DOMAIN}}{{TRENDS_BASE_URL}}"
+							],
+							"path": [
+								"search",
+								"filters"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "StartFragment\n\n###### **List all filters that can be used when searching**\n\nThis method returns a list of search filters that can be used in the search query.\n\nEndFragment"
+					},
+					"response": []
+				},
+				{
+					"name": "List all serach facets",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{TRENDS_DOMAIN}}{{TRENDS_BASE_URL}}/search/facets?key={{API_KEY}}",
+							"host": [
+								"{{TRENDS_DOMAIN}}{{TRENDS_BASE_URL}}"
+							],
+							"path": [
+								"search",
+								"facets"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{API_KEY}}"
+								}
+							]
+						},
+						"description": "StartFragment\n\n###### **List all search facets**\n\nThis method returns a list of facets that can be used to get a breakdown of the top values for a property.\n\nEndFragmen"
+					},
+					"response": []
 				}
 			]
 		}
